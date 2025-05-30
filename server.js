@@ -31,7 +31,7 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"] // Add 'Authorization' if using tokens
   })
 );
-app.options("*", cors()); // Preflight support for all routes
+// app.options("*", cors()); // Preflight support for all routes
 
 app.use(bodyParser.json());
 app.use(express.json());
