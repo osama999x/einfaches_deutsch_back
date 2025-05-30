@@ -24,14 +24,15 @@ const EMAIL_CONFIG = {
   }
 };
 
-// Middleware
 app.use(
   cors({
-    origin: FRONTEND_URL,
-    methods: ["POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"]
+    origin: "*", // Allow requests from any origin
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Allow all common methods
+    allowedHeaders: ["Content-Type", "Authorization"] // Add 'Authorization' if using tokens
   })
 );
+app.options("*", cors()); // Preflight support for all routes
+
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(morgan("dev"));
