@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5002;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const EMAIL_CONFIG = {
   host: "smtpout.secureserver.net",
-  port: 465,
+  port: 587,
   secure: false,
   auth: {
     user: process.env.EMAIL_USER,
