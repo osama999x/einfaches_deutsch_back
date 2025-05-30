@@ -14,7 +14,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const EMAIL_CONFIG = {
   host: "smtpout.secureserver.net",
   port: 465,
-  secure: true,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
