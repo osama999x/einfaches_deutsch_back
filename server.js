@@ -72,6 +72,207 @@ const generateFieldRow = (label, value) => {
   `;
 };
 
+// Routes
+app.get("/", (req, res) => {
+  res.send("Welcome to the German Language Institute API");
+});
+
+app.post("/submit-form", async (req, res) => {
+  try {
+    const { formData, courseId } = req.body;
+
+    if (!formData || !formData.fullName) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid form data: fullName is required",
+      });
+    }
+
+    console.log("Received form data:", formData);
+
+    const mailOptions = {
+      from: `"Course Registration" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      subject: `New ${courseId || "Course"} Registration - ${
+        formData.fullName
+      }`,
+      html: generateEmailHTML(formData, courseId),
+    };
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+
+    res.status(200).json({
+      success: true,
+      message: "Form submitted successfully",
+      info: info,
+    });
+  } catch (error) {
+    console.error("Error processing form submission:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error processing form submission",
+      error: error.message,
+    });
+  }
+});
+
+app.post("/rightOnTime", async (req, res) => {
+  try {
+    const { service, name, email, phone, subject, description } = req.body;
+
+    // Create a dedicated transporter for Right On Time using Gmail
+    const rightOnTimeTransporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: "osamakhan16708e@gmail.com",
+        pass: "noba clus jwbw ccug",
+      },
+    });
+
+    const mailOptions = {
+      from: `"Right On Time Services" <osamakhan16708e@gmail.com>`,
+      to: "Info@rightontime.biz",
+      subject: `New Contact Form Submission - ${name}`,
+      html: generateContactEmailHTML({
+        service,
+        name,
+        email,
+        phone,
+        subject,
+        description,
+      }),
+    };
+
+    // Verify connection configuration
+    await rightOnTimeTransporter.verify();
+
+    // Send email
+    const info = await rightOnTimeTransporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+
+    res.status(200).json({
+      success: true,
+      message: "Form submitted successfully",
+      info: info,
+    });
+  } catch (error) {
+    console.error("Error processing form:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error processing form submission",
+      error: error.message,
+    });
+  }
+});
+
+function generateContactEmailHTML(formData) {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <title>New Contact Form Submission</title>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #1e40af;
+        padding: 30px 20px;
+        text-align: center;
+        border-radius: 8px 8px 0 0;
+      }
+      .header h1 {
+        color: white;
+        margin: 0;
+        font-size: 24px;
+      }
+      .content {
+        background-color: white;
+        padding: 30px;
+        border: 1px solid #e5e7eb;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+      }
+      .detail-row {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .detail-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .label {
+        font-weight: bold;
+        color: #1e40af;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .value {
+        color: #4b5563;
+      }
+      .footer {
+        margin-top: 30px;
+        text-align: center;
+        font-size: 12px;
+        color: #9ca3af;
+      }
+      .logo {
+        max-width: 180px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>New Contact Form Submission</h1>
+    </div>
+    <div class="content">
+      <div class="detail-row">
+        <span class="label">Service Interested In:</span>
+        <span class="value">${formData.service || "Not specified"}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Name:</span>
+        <span class="value">${formData.name}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Email:</span>
+        <span class="value">${formData.email}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Phone:</span>
+        <span class="value">${formData.phone}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Subject:</span>
+        <span class="value">${formData.subject || "No subject provided"}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Message:</span>
+        <p class="value">${formData.description || "No message provided"}</p>
+      </div>
+    </div>
+    <div class="footer">
+      <p>This email was generated from the Right On Time Services contact form.</p>
+      <p>© ${new Date().getFullYear()} Right On Time Services. All rights reserved.</p>
+    </div>
+  </body>
+  </html>
+  `;
+}
+
 const generateEmailHTML = (formData, courseId) => {
   return `
 <!DOCTYPE html>
@@ -394,206 +595,6 @@ const generateEmailHTML = (formData, courseId) => {
   `;
 };
 
-// Routes
-app.get("/", (req, res) => {
-  res.send("Welcome to the German Language Institute API");
-});
-
-app.post("/submit-form", async (req, res) => {
-  try {
-    const { formData, courseId } = req.body;
-
-    if (!formData || !formData.fullName) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid form data: fullName is required",
-      });
-    }
-
-    console.log("Received form data:", formData);
-
-    const mailOptions = {
-      from: `"Course Registration" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
-      subject: `New ${courseId || "Course"} Registration - ${
-        formData.fullName
-      }`,
-      html: generateEmailHTML(formData, courseId),
-    };
-
-    // Send email
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
-
-    res.status(200).json({
-      success: true,
-      message: "Form submitted successfully",
-      info: info,
-    });
-  } catch (error) {
-    console.error("Error processing form submission:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error processing form submission",
-      error: error.message,
-    });
-  }
-});
-
-app.post("/rightOnTime", async (req, res) => {
-  try {
-    const { service, name, email, phone, subject, description } = req.body;
-
-    // Create a dedicated transporter for Right On Time using Gmail
-    const rightOnTimeTransporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: "osamakhan16708e@gmail.com",
-        pass: "noba clus jwbw ccug",
-      },
-    });
-
-    const mailOptions = {
-      from: `"Right On Time Services" <osamakhan16708e@gmail.com>`,
-      to: "osamakhan99@hotmail.com",
-      subject: `New Contact Form Submission - ${name}`,
-      html: generateContactEmailHTML({
-        service,
-        name,
-        email,
-        phone,
-        subject,
-        description,
-      }),
-    };
-
-    // Verify connection configuration
-    await rightOnTimeTransporter.verify();
-
-    // Send email
-    const info = await rightOnTimeTransporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
-
-    res.status(200).json({
-      success: true,
-      message: "Form submitted successfully",
-      info: info,
-    });
-  } catch (error) {
-    console.error("Error processing form:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error processing form submission",
-      error: error.message,
-    });
-  }
-});
-
-function generateContactEmailHTML(formData) {
-  return `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>New Contact Form Submission</title>
-    <style>
-      body {
-        font-family: 'Arial', sans-serif;
-        line-height: 1.6;
-        color: #333;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-      }
-      .header {
-        background-color: #1e40af;
-        padding: 30px 20px;
-        text-align: center;
-        border-radius: 8px 8px 0 0;
-      }
-      .header h1 {
-        color: white;
-        margin: 0;
-        font-size: 24px;
-      }
-      .content {
-        background-color: white;
-        padding: 30px;
-        border: 1px solid #e5e7eb;
-        border-top: none;
-        border-radius: 0 0 8px 8px;
-      }
-      .detail-row {
-        margin-bottom: 15px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #f3f4f6;
-      }
-      .detail-row:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-      }
-      .label {
-        font-weight: bold;
-        color: #1e40af;
-        display: block;
-        margin-bottom: 5px;
-      }
-      .value {
-        color: #4b5563;
-      }
-      .footer {
-        margin-top: 30px;
-        text-align: center;
-        font-size: 12px;
-        color: #9ca3af;
-      }
-      .logo {
-        max-width: 180px;
-        margin-bottom: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="header">
-      <h1>New Contact Form Submission</h1>
-    </div>
-    <div class="content">
-      <div class="detail-row">
-        <span class="label">Service Interested In:</span>
-        <span class="value">${formData.service || "Not specified"}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Name:</span>
-        <span class="value">${formData.name}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Email:</span>
-        <span class="value">${formData.email}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Phone:</span>
-        <span class="value">${formData.phone}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Subject:</span>
-        <span class="value">${formData.subject || "No subject provided"}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">Message:</span>
-        <p class="value">${formData.description || "No message provided"}</p>
-      </div>
-    </div>
-    <div class="footer">
-      <p>This email was generated from the Right On Time Services contact form.</p>
-      <p>© ${new Date().getFullYear()} Right On Time Services. All rights reserved.</p>
-    </div>
-  </body>
-  </html>
-  `;
-}
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
